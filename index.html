@@ -62,11 +62,24 @@ function LeadGate({ onUnlock }) {
     return e;
   };
 
-  const submit = () => {
+  const SHEETS_URL = "https://script.google.com/macros/s/AKfycbxN1l53SG_6g5h91zuzr1hq4P5FT5QACyj7vqmlC3KN6zcLNwxy_lcv8FapDfwyX88m/exec";
+
+  const submit = async () => {
     const e = validate();
     if (Object.keys(e).length) { setErrors(e); return; }
     setLoading(true);
-    setTimeout(() => { setLoading(false); setDone(true); }, 1000);
+    try {
+      await fetch(SHEETS_URL, {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: f.name, email: f.email, phone: f.phone, company: f.company, type: f.type })
+      });
+    } catch (err) {
+      console.error("Lead capture error:", err);
+    }
+    setLoading(false);
+    setDone(true);
   };
 
   const inp = (err) => ({
