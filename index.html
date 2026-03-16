@@ -13,36 +13,244 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html, body { height: 100%; }
     body {
-      background: #07070F;
-      color: #fff;
       font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
       -webkit-font-smoothing: antialiased;
+      background: var(--bg-page);
+      color: var(--text-primary);
+      transition: background .25s, color .25s;
     }
     #root { min-height: 100vh; }
+
+    /* ── DARK THEME (default) ── */
+    :root, [data-theme="dark"] {
+      --bg-page:        #07070F;
+      --bg-card:        #0d0d1f;
+      --bg-input:       #0a0a18;
+      --bg-row-alt:     rgba(255,255,255,0.01);
+      --bg-section:     rgba(255,255,255,0.03);
+      --bg-badge:       rgba(255,255,255,0.05);
+      --border:         rgba(255,255,255,0.07);
+      --border-input:   rgba(255,255,255,0.10);
+      --border-subtle:  rgba(255,255,255,0.04);
+      --text-primary:   #ffffff;
+      --text-secondary: #aaaaaa;
+      --text-muted:     #555555;
+      --text-faint:     #333333;
+      --text-placeholder: #333333;
+      --sasco-blue:     #1a6fbd;
+      --accent-orange:  #FF6B35;
+      --scrollbar-track: #0a0a18;
+      --scrollbar-thumb: rgba(255,255,255,0.10);
+      --scrollbar-hover: rgba(255,255,255,0.18);
+      --select-arrow:   %23666666;
+      --date-picker-filter: invert(0.5);
+      --incoterms-grid-bg: #0a0a18;
+      --shadow-card:    0 14px 36px rgba(0,0,0,0.4);
+    }
+
+    /* ── LIGHT THEME ── */
+    [data-theme="light"] {
+      --bg-page:        #f4f6fa;
+      --bg-card:        #ffffff;
+      --bg-input:       #f8f9fc;
+      --bg-row-alt:     rgba(0,0,0,0.018);
+      --bg-section:     rgba(0,0,0,0.025);
+      --bg-badge:       rgba(0,0,0,0.055);
+      --border:         rgba(0,0,0,0.08);
+      --border-input:   rgba(0,0,0,0.12);
+      --border-subtle:  rgba(0,0,0,0.05);
+      --text-primary:   #111827;
+      --text-secondary: #374151;
+      --text-muted:     #6b7280;
+      --text-faint:     #9ca3af;
+      --text-placeholder: #9ca3af;
+      --sasco-blue:     #1a6fbd;
+      --accent-orange:  #e85d1f;
+      --scrollbar-track: #e5e7eb;
+      --scrollbar-thumb: rgba(0,0,0,0.15);
+      --scrollbar-hover: rgba(0,0,0,0.25);
+      --select-arrow:   %23555555;
+      --date-picker-filter: invert(0) brightness(0.5);
+      --incoterms-grid-bg: #f8f9fc;
+      --shadow-card:    0 4px 20px rgba(0,0,0,0.07);
+    }
+
     /* Scrollbar */
     ::-webkit-scrollbar { width: 6px; height: 6px; }
-    ::-webkit-scrollbar-track { background: #0a0a18; }
-    ::-webkit-scrollbar-thumb { background: #ffffff18; border-radius: 3px; }
-    ::-webkit-scrollbar-thumb:hover { background: #ffffff30; }
+    ::-webkit-scrollbar-track { background: var(--scrollbar-track); }
+    ::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--scrollbar-hover); }
     /* Date input fix */
-    input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(0.5); cursor: pointer; }
+    input[type="date"]::-webkit-calendar-picker-indicator { filter: var(--date-picker-filter); cursor: pointer; }
     /* Select arrow */
-    select { appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23666' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; padding-right: 28px !important; }
-    /* Spin animation */
+    select { appearance: none; -webkit-appearance: none; background-repeat: no-repeat; background-position: right 10px center; padding-right: 28px !important; }
+    [data-theme="dark"] select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23666' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); }
+    [data-theme="light"] select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23555' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); }
+    /* Animations */
     @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes pop  { from { transform: scale(.92); opacity: 0 } to { transform: scale(1); opacity: 1 } }
     /* Table reset */
     table { border-collapse: collapse; }
     /* Input number arrows hide */
     input[type=number]::-webkit-inner-spin-button,
     input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
     input[type=number] { -moz-appearance: textfield; }
+    /* Placeholder text */
+    input::placeholder { color: var(--text-placeholder); }
+    /* Smooth transitions on interactive elements */
+    button, input, select { transition: border-color .15s, background .15s, color .15s; }
+
+    /* ── THEME-AWARE COMPONENT HELPERS ── */
+    /* These override the hardcoded inline styles for the most critical elements */
+
+    /* ALL inputs */
+    input, select {
+      background: var(--bg-input) !important;
+      border-color: var(--border-input) !important;
+      color: var(--text-primary) !important;
+    }
+    input:focus, select:focus {
+      border-color: #1a6fbd !important;
+      outline: none;
+    }
+
+    /* Card backgrounds */
+    .t-card   { background: var(--bg-card)    !important; border-color: var(--border) !important; }
+    .t-input  { background: var(--bg-input)   !important; border-color: var(--border-input) !important; color: var(--text-primary) !important; }
+    .t-section{ background: var(--bg-section) !important; border-color: var(--border) !important; }
+
+    /* Light mode: enforce text colours on elements that use hardcoded hex */
+    [data-theme="light"] h2,
+    [data-theme="light"] h3,
+    [data-theme="light"] strong { color: var(--text-primary); }
+
+    [data-theme="light"] .tool-card-desc  { color: var(--text-muted) !important; }
+    [data-theme="light"] .tool-card-label { color: var(--text-muted) !important; }
+
+    /* Force text legibility on common muted shades in light mode */
+    [data-theme="light"] [style*="color: #444"],
+    [data-theme="light"] [style*="color:#444"]  { color: var(--text-secondary) !important; }
+    [data-theme="light"] [style*="color: #555"],
+    [data-theme="light"] [style*="color:#555"]  { color: var(--text-muted)     !important; }
+    [data-theme="light"] [style*="color: #666"],
+    [data-theme="light"] [style*="color:#666"]  { color: var(--text-muted)     !important; }
+    [data-theme="light"] [style*="color: #777"],
+    [data-theme="light"] [style*="color:#777"]  { color: var(--text-muted)     !important; }
+    [data-theme="light"] [style*="color: #888"],
+    [data-theme="light"] [style*="color:#888"]  { color: var(--text-muted)     !important; }
+    [data-theme="light"] [style*="color: #333"],
+    [data-theme="light"] [style*="color:#333"]  { color: var(--text-faint)     !important; }
+    [data-theme="light"] [style*="color: #aaa"],
+    [data-theme="light"] [style*="color:#aaa"]  { color: var(--text-secondary) !important; }
+    [data-theme="light"] [style*="color: #bbb"],
+    [data-theme="light"] [style*="color:#bbb"]  { color: var(--text-secondary) !important; }
+    [data-theme="light"] [style*="color: #ccc"],
+    [data-theme="light"] [style*="color:#ccc"]  { color: var(--text-muted)     !important; }
+    [data-theme="light"] [style*="color: #ddd"],
+    [data-theme="light"] [style*="color:#ddd"]  { color: var(--text-secondary) !important; }
+    [data-theme="light"] [style*="color: #fff"],
+    [data-theme="light"] [style*="color:#fff"]  { color: var(--text-primary)   !important; }
+    [data-theme="light"] [style*="color: #ffffff"],
+    [data-theme="light"] [style*="color:#ffffff"]{ color: var(--text-primary)  !important; }
+
+    /* Background overrides for light mode */
+    [data-theme="light"] [style*="background: #07070F"],
+    [data-theme="light"] [style*="background:#07070F"],
+    [data-theme="light"] [style*="background: #0d0d1f"],
+    [data-theme="light"] [style*="background:#0d0d1f"],
+    [data-theme="light"] [style*="background: #0a0a18"],
+    [data-theme="light"] [style*="background:#0a0a18"]  { background: var(--bg-card)  !important; }
+
+    [data-theme="light"] [style*="background: #07070F"] { background: var(--bg-page) !important; }
+
+    /* Border overrides for light mode */
+    [data-theme="light"] [style*="border: 1px solid #ffffff08"],
+    [data-theme="light"] [style*="border: 1px solid #ffffff0c"],
+    [data-theme="light"] [style*="border: 1px solid #ffffff10"],
+    [data-theme="light"] [style*="border: 1px solid #ffffff12"],
+    [data-theme="light"] [style*="border: 1px solid #ffffff15"],
+    [data-theme="light"] [style*="border: 1px solid #ffffff18"] { border-color: var(--border) !important; }
+
+    /* Lead gate full-screen bg */
+    [data-theme="light"] .leadgate-bg { background: linear-gradient(135deg, #f0f4ff 0%, #e8f0fe 100%) !important; }
+
+    /* Navbar */
+    [data-theme="light"] .navbar { background: #ffffff !important; border-bottom-color: var(--border) !important; box-shadow: 0 1px 8px rgba(0,0,0,0.06); }
+
+    /* Tool cards on homepage */
+    [data-theme="light"] .tool-card { background: #ffffff !important; border-color: var(--border) !important; box-shadow: 0 2px 12px rgba(0,0,0,0.05); }
+    [data-theme="light"] .tool-card:hover { box-shadow: var(--shadow-card) !important; }
+
+    /* Active tool panel */
+    [data-theme="light"] .tool-panel { background: #ffffff !important; border-color: var(--border) !important; box-shadow: 0 2px 16px rgba(0,0,0,0.07); }
+
+    /* Stats bar */
+    [data-theme="light"] .stat-item .stat-value { color: #e85d1f !important; }
+    [data-theme="light"] .stat-item .stat-label { color: var(--text-muted) !important; }
+
+    /* Footer */
+    [data-theme="light"] footer { background: #ffffff !important; border-top-color: var(--border) !important; }
+
+    /* Tables in Incoterms, ICC */
+    [data-theme="light"] [style*="background: #ffffff06"],
+    [data-theme="light"] [style*="background: #ffffff04"],
+    [data-theme="light"] [style*="background: #ffffff08"] { background: rgba(0,0,0,0.025) !important; }
+    [data-theme="light"] [style*="background: #ffffff02"] { background: rgba(0,0,0,0.012) !important; }
+
+    /* Other tool nav buttons */
+    [data-theme="light"] .other-tool-btn { background: var(--bg-card) !important; border-color: var(--border) !important; color: var(--text-muted) !important; }
   </style>
 </head>
 <body>
   <div id="root"></div>
 
   <script type="text/babel">
-    const { useState, useEffect, useRef, useCallback } = React;
+    const { useState, useEffect, useRef, useCallback, createContext, useContext } = React;
+
+    // ─── THEME CONTEXT ────────────────────────────────────────────────────────
+    const ThemeContext = createContext({ theme: 'dark', toggle: () => {} });
+    const useTheme = () => useContext(ThemeContext);
+
+    function ThemeProvider({ children }) {
+      const [theme, setTheme] = useState(() => {
+        try { return localStorage.getItem('ftp_theme') || 'dark'; } catch { return 'dark'; }
+      });
+      useEffect(() => {
+        document.documentElement.setAttribute('data-theme', theme);
+        try { localStorage.setItem('ftp_theme', theme); } catch {}
+      }, [theme]);
+      const toggle = () => setTheme(t => t === 'dark' ? 'light' : 'dark');
+      return (
+        <ThemeContext.Provider value={{ theme, toggle }}>
+          {children}
+        </ThemeContext.Provider>
+      );
+    }
+
+    function ThemeToggle() {
+      const { theme, toggle } = useTheme();
+      const isDark = theme === 'dark';
+      return (
+        <button
+          onClick={toggle}
+          title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+          style={{
+            display: 'flex', alignItems: 'center', gap: 7,
+            padding: '7px 14px',
+            background: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)',
+            border: `1px solid ${isDark ? 'rgba(255,255,255,0.10)' : 'rgba(0,0,0,0.10)'}`,
+            borderRadius: 20,
+            color: isDark ? '#aaa' : '#555',
+            fontSize: 12, fontWeight: 700, cursor: 'pointer',
+            transition: 'all .2s',
+            flexShrink: 0,
+          }}
+        >
+          <span style={{ fontSize: 14 }}>{isDark ? '☀️' : '🌙'}</span>
+          <span>{isDark ? 'Light' : 'Dark'}</span>
+        </button>
+      );
+    }
 
 
 // ─── ONE-TIME LEAD GATE ───────────────────────────────────────────────────────
@@ -82,10 +290,12 @@ function LeadGate({ onUnlock }) {
   return (
     <div style={{
       position: "fixed", inset: 0, zIndex: 999,
-      background: "linear-gradient(135deg, #07070F 0%, #0d0d25 100%)",
+      background: "var(--bg-page)",
       display: "flex", alignItems: "center", justifyContent: "center",
       padding: 20, overflow: "auto",
     }}>
+      {/* Theme toggle on lead gate */}
+      <div style={{ position: "fixed", top: 16, right: 20, zIndex: 10 }}><ThemeToggle /></div>
       {/* BG grid */}
       <div style={{ position: "fixed", inset: 0, backgroundImage: "linear-gradient(#ffffff04 1px,transparent 1px),linear-gradient(90deg,#ffffff04 1px,transparent 1px)", backgroundSize: "40px 40px", pointerEvents: "none" }} />
       {/* Orbs */}
@@ -95,7 +305,7 @@ function LeadGate({ onUnlock }) {
       <div style={{
         position: "relative", zIndex: 1,
         background: "#0d0d1f",
-        border: "1px solid #ffffff12",
+        border: "1px solid var(--border)",
         borderRadius: 24, width: "100%", maxWidth: 500,
         padding: "44px 40px",
         boxShadow: "0 40px 100px rgba(0,0,0,0.6)",
@@ -142,7 +352,7 @@ function LeadGate({ onUnlock }) {
 
             {/* User type selector */}
             <div style={{ marginBottom: 20 }}>
-              <label style={{ display: "block", color: "#888", fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 10 }}>
+              <label style={{ display: "block", color: "var(--text-muted)", fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 10 }}>
                 I am a... {errors.type && <span style={{ color: "#f55", fontSize: 11, textTransform: "none", letterSpacing: 0 }}>— {errors.type}</span>}
               </label>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
@@ -174,7 +384,7 @@ function LeadGate({ onUnlock }) {
                       </div>
                       <span style={{ color: f.type === opt.val ? "#fff" : "#aaa", fontSize: 13, fontWeight: 800 }}>{opt.label}</span>
                     </div>
-                    <div style={{ color: "#555", fontSize: 11 }}>{opt.sub}</div>
+                    <div style={{ color: "var(--text-muted)", fontSize: 11 }}>{opt.sub}</div>
                   </div>
                 ))}
               </div>
@@ -204,7 +414,7 @@ function LeadGate({ onUnlock }) {
                 {f.type === "freight_forwarder" ? "Freight Forwarder" : "End User / Shipper"}
               </strong>.
             </p>
-            <p style={{ color: "#555", fontSize: 13, marginBottom: 28 }}>
+            <p style={{ color: "var(--text-muted)", fontSize: 13, marginBottom: 28 }}>
               All 9 tools are now unlocked. You'll never need to sign in again on this device.
             </p>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 8, justifyContent: "center", marginBottom: 28 }}>
@@ -276,12 +486,12 @@ function CBMTool() {
             <div key={c.l} style={{ background: c.h ? "#FF6B3512" : "#ffffff06", border: `1px solid ${c.h ? "#FF6B3545" : "#ffffff10"}`, borderRadius: 10, padding: "12px 14px" }}>
               <div style={{ color: "#666", fontSize: 10, fontWeight: 700, letterSpacing: 1.2, textTransform: "uppercase" }}>{c.l}</div>
               <div style={{ color: c.h ? "#FF6B35" : "#fff", fontSize: 17, fontWeight: 800, margin: "4px 0 2px" }}>{c.v}</div>
-              <div style={{ color: "#555", fontSize: 11 }}>{c.s}</div>
+              <div style={{ color: "var(--text-muted)", fontSize: 11 }}>{c.s}</div>
             </div>
           ))}
         </div>
         <div style={{ marginTop: 16 }}>
-          <div style={{ color: "#555", fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 8 }}>Container Fit</div>
+          <div style={{ color: "var(--text-muted)", fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 8 }}>Container Fit</div>
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
             {containers.map(c => { const p = Math.min((T.cbm / c.c) * 100, 100); const ov = T.cbm > c.c; return (
               <div key={c.n} style={{ flex: 1, minWidth: 120, background: "#ffffff06", border: `1px solid ${ov ? "#f5540040" : "#ffffff10"}`, borderRadius: 10, padding: "10px 12px" }}>
@@ -343,7 +553,7 @@ function IncotermsDecoder() {
             ))}
           </div>
         </div>
-      ) : <div style={{ color: "#444", textAlign: "center", padding: "28px 0", fontSize: 14 }}>👆 Click any Incoterm to decode it</div>}
+      ) : <div style={{ color: "var(--text-faint)", textAlign: "center", padding: "28px 0", fontSize: 14 }}>👆 Click any Incoterm to decode it</div>}
     </div>
   );
 }
@@ -430,7 +640,7 @@ function ContainerPlanner() {
     ? "⚠️ Non-stackable items detected — these must be loaded last (top layer only), reducing effective volume utilization."
     : null;
 
-  const si = { background: "#0a0a18", border: "1px solid #ffffff15", borderRadius: 8, color: "#fff", padding: "8px 9px", fontSize: 13, outline: "none", width: "100%", boxSizing: "border-box", fontFamily: "inherit" };
+  const si = { background: "var(--bg-input)", border: "1px solid var(--border-input)", borderRadius: 8, color: "var(--text-primary)", padding: "8px 9px", fontSize: 13, outline: "none", width: "100%", boxSizing: "border-box", fontFamily: "inherit" };
 
   const Toggle = ({ value, onChange, onLabel, offLabel, onColor = "#06D6A0" }) => (
     <button
@@ -461,7 +671,7 @@ function ContainerPlanner() {
 
       {/* Vehicle Selector */}
       <div style={{ marginBottom: 16 }}>
-        <label style={{ color: "#888", fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 6, display: "block" }}>
+        <label style={{ color: "var(--text-muted)", fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 6, display: "block" }}>
           {transport === "sea" ? "Container Type" : "Vehicle Type"}
         </label>
         <select value={vehicle} onChange={e => setVehicle(e.target.value)} style={{ ...si, maxWidth: 280 }}>
@@ -513,7 +723,7 @@ function ContainerPlanner() {
           ["📦 Loose", "#888",    "Loose carton / break-bulk"]].map(([l, c, tip]) => (
           <div key={l} title={tip} style={{ display: "flex", alignItems: "center", gap: 5, cursor: "default" }}>
             <div style={{ width: 8, height: 8, borderRadius: "50%", background: c }} />
-            <span style={{ color: "#555", fontSize: 10 }}>{l}</span>
+            <span style={{ color: "var(--text-muted)", fontSize: 10 }}>{l}</span>
           </div>
         ))}
       </div>
@@ -530,9 +740,9 @@ function ContainerPlanner() {
             hasNonStackable && { l: "Non-Stackable", v: `${calc.filter(c => !c.stackable).reduce((s,c)=>s+c.qty,0)} pcs`, s: "⚠️ Top-layer only", warn: true },
           ].filter(Boolean).map(c => (
             <div key={c.l} style={{ background: c.warn ? "#FF6B3510" : "#ffffff06", border: `1px solid ${c.warn ? "#FF6B3540" : "#ffffff10"}`, borderRadius: 10, padding: "11px 13px" }}>
-              <div style={{ color: "#555", fontSize: 10, fontWeight: 700, letterSpacing: 1.2, textTransform: "uppercase" }}>{c.l}</div>
+              <div style={{ color: "var(--text-muted)", fontSize: 10, fontWeight: 700, letterSpacing: 1.2, textTransform: "uppercase" }}>{c.l}</div>
               <div style={{ color: c.warn ? "#FF6B35" : "#fff", fontSize: 16, fontWeight: 800, margin: "4px 0 2px" }}>{c.v}</div>
-              <div style={{ color: "#555", fontSize: 11 }}>{c.s}</div>
+              <div style={{ color: "var(--text-muted)", fontSize: 11 }}>{c.s}</div>
             </div>
           ))}
         </div>
@@ -544,10 +754,10 @@ function ContainerPlanner() {
         ].filter(Boolean).map(b => (
           <div key={b.l} style={{ marginBottom: 14 }}>
             <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5 }}>
-              <span style={{ color: "#aaa", fontSize: 12, fontWeight: 700 }}>{b.l}</span>
+              <span style={{ color: "var(--text-secondary)", fontSize: 12, fontWeight: 700 }}>{b.l}</span>
               <span style={{ color: b.c, fontSize: 12, fontWeight: 800 }}>{b.p.toFixed(1)}% — {b.v}</span>
             </div>
-            <div style={{ background: "#ffffff08", borderRadius: 6, height: 10, overflow: "hidden" }}>
+            <div style={{ background: "var(--bg-badge)", borderRadius: 6, height: 10, overflow: "hidden" }}>
               <div style={{ height: "100%", width: `${Math.min(b.p, 100)}%`, background: b.c, borderRadius: 6, transition: "width .6s" }} />
             </div>
           </div>
@@ -575,14 +785,14 @@ function ContainerPlanner() {
         {/* Road-specific: all container fit comparison */}
         {transport === "sea" && (
           <div style={{ marginTop: 18 }}>
-            <div style={{ color: "#555", fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 8 }}>All Container Fits</div>
+            <div style={{ color: "var(--text-muted)", fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 8 }}>All Container Fits</div>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
               {Object.entries(VEHICLES.sea).map(([k, v]) => {
                 const p = v.cbm ? Math.min((tCBM / v.cbm) * 100, 100) : 0;
                 const ov = v.cbm ? tCBM > v.cbm : false;
                 return (
                   <div key={k} style={{ flex: "1 1 110px", background: "#ffffff06", border: `1px solid ${ov ? "#f5540030" : "#ffffff10"}`, borderRadius: 10, padding: "9px 11px" }}>
-                    <div style={{ color: "#fff", fontWeight: 800, fontSize: 11, marginBottom: 5 }}>{k}</div>
+                    <div style={{ color: "var(--text-primary)", fontWeight: 800, fontSize: 11, marginBottom: 5 }}>{k}</div>
                     <div style={{ background: "#ffffff08", borderRadius: 4, height: 6, overflow: "hidden", marginBottom: 4 }}>
                       <div style={{ height: "100%", width: `${p}%`, background: ov ? "#f55" : "#FF6B35", borderRadius: 4 }} />
                     </div>
@@ -598,7 +808,7 @@ function ContainerPlanner() {
 
         {transport === "road" && (
           <div style={{ marginTop: 18 }}>
-            <div style={{ color: "#555", fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 8 }}>All Vehicle Fits</div>
+            <div style={{ color: "var(--text-muted)", fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 8 }}>All Vehicle Fits</div>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
               {Object.entries(VEHICLES.road).map(([k, v]) => {
                 const ovV = v.cbm ? tCBM > v.cbm : false;
@@ -608,7 +818,7 @@ function ContainerPlanner() {
                 const pw = Math.min((tWt / v.maxWt) * 100, 100);
                 return (
                   <div key={k} style={{ flex: "1 1 120px", background: "#ffffff06", border: `1px solid ${ov ? "#f5540030" : "#ffffff10"}`, borderRadius: 10, padding: "9px 11px" }}>
-                    <div style={{ color: "#fff", fontWeight: 800, fontSize: 11, marginBottom: 5 }}>{k}</div>
+                    <div style={{ color: "var(--text-primary)", fontWeight: 800, fontSize: 11, marginBottom: 5 }}>{k}</div>
                     {pv !== null && <><div style={{ background: "#ffffff08", borderRadius: 3, height: 5, overflow: "hidden", marginBottom: 3 }}>
                       <div style={{ height: "100%", width: `${pv}%`, background: ovV ? "#f55" : "#06D6A0", borderRadius: 3 }} />
                     </div></>}
@@ -706,7 +916,7 @@ Respond ONLY with a JSON object, no markdown, no explanation:
     setLoading(false);
   };
 
-  const si = { background: "#0a0a18", border: "1px solid #ffffff15", borderRadius: 8, color: "#fff", padding: "10px 12px", fontSize: 13, outline: "none", width: "100%", boxSizing: "border-box", fontFamily: "inherit" };
+  const si = { background: "var(--bg-input)", border: "1px solid var(--border-input)", borderRadius: 8, color: "var(--text-primary)", padding: "10px 12px", fontSize: 13, outline: "none", width: "100%", boxSizing: "border-box", fontFamily: "inherit" };
   const confidenceColor = { high: "#06D6A0", medium: "#FF6B35", low: "#f55" };
 
   return (
@@ -753,7 +963,7 @@ Respond ONLY with a JSON object, no markdown, no explanation:
         </div>
         {/* Departure date */}
         <div>
-          <label style={{ color: "#888", fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 6, display: "block" }}>Departure Date (optional)</label>
+          <label style={{ color: "var(--text-muted)", fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 6, display: "block" }}>Departure Date (optional)</label>
           <input type="date" value={f.depart} onChange={e => setF(p => ({ ...p, depart: e.target.value }))} style={si} />
         </div>
       </div>
@@ -779,9 +989,9 @@ Respond ONLY with a JSON object, no markdown, no explanation:
               ...(result.arrivalDate ? [{ l: "Est. Delivery", v: result.arrivalDate, s: result.earliestDate !== result.latestDate ? `${result.earliestDate} – ${result.latestDate}` : "Best estimate", accent: "#06D6A0" }] : []),
             ].map(c => (
               <div key={c.l} style={{ background: `${c.accent}10`, border: `1px solid ${c.accent}35`, borderRadius: 10, padding: "12px 14px" }}>
-                <div style={{ color: "#555", fontSize: 10, fontWeight: 700, letterSpacing: 1.2, textTransform: "uppercase" }}>{c.l}</div>
+                <div style={{ color: "var(--text-muted)", fontSize: 10, fontWeight: 700, letterSpacing: 1.2, textTransform: "uppercase" }}>{c.l}</div>
                 <div style={{ color: c.accent, fontSize: 16, fontWeight: 800, margin: "4px 0 2px" }}>{c.v}</div>
-                <div style={{ color: "#555", fontSize: 11 }}>{c.s}</div>
+                <div style={{ color: "var(--text-muted)", fontSize: 11 }}>{c.s}</div>
               </div>
             ))}
           </div>
@@ -808,7 +1018,7 @@ Respond ONLY with a JSON object, no markdown, no explanation:
                 {[["#118AB2", f.mode === "sea" ? "Sea transit" : "Air transit"], ["#FF6B35", "Customs clearance"]].map(([c, l]) => (
                   <div key={l} style={{ display: "flex", alignItems: "center", gap: 5 }}>
                     <div style={{ width: 10, height: 10, borderRadius: 2, background: c }} />
-                    <span style={{ color: "#555", fontSize: 11 }}>{l}</span>
+                    <span style={{ color: "var(--text-muted)", fontSize: 11 }}>{l}</span>
                   </div>
                 ))}
               </div>
@@ -818,14 +1028,14 @@ Respond ONLY with a JSON object, no markdown, no explanation:
           {/* Carriers + Notes */}
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 12 }}>
             {result.carriers?.length > 0 && (
-              <div style={{ background: "#ffffff06", border: "1px solid #ffffff10", borderRadius: 10, padding: "12px 14px" }}>
+              <div style={{ background: "var(--bg-section)", border: "1px solid var(--border)", borderRadius: 10, padding: "12px 14px" }}>
                 <div style={{ color: "#555", fontSize: 10, fontWeight: 700, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 8 }}>Carriers on this route</div>
                 {result.carriers.map(c => (
                   <div key={c} style={{ color: "#ccc", fontSize: 12, padding: "3px 0", borderBottom: "1px solid #ffffff08" }}>🚢 {c}</div>
                 ))}
               </div>
             )}
-            <div style={{ background: "#ffffff06", border: "1px solid #ffffff10", borderRadius: 10, padding: "12px 14px" }}>
+            <div style={{ background: "var(--bg-section)", border: "1px solid var(--border)", borderRadius: 10, padding: "12px 14px" }}>
               <div style={{ color: "#555", fontSize: 10, fontWeight: 700, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 6 }}>AI Confidence</div>
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
                 <div style={{ width: 10, height: 10, borderRadius: "50%", background: confidenceColor[result.confidence] || "#888" }} />
@@ -1255,7 +1465,7 @@ function ShipmentTracker() {
           { l: "Ocean Lines", v: seaCount, color: "#4361EE" },
           { l: "Airlines / Couriers", v: airCount, color: "#FF6B35" },
         ].map(s => (
-          <div key={s.l} style={{ background: "#ffffff06", border: "1px solid #ffffff10", borderRadius: 10, padding: "10px 16px", display: "flex", alignItems: "center", gap: 10 }}>
+          <div key={s.l} style={{ background: "var(--bg-section)", border: "1px solid var(--border)", borderRadius: 10, padding: "10px 16px", display: "flex", alignItems: "center", gap: 10 }}>
             <span style={{ color: s.color, fontSize: 18, fontWeight: 900 }}>{s.v}</span>
             <span style={{ color: "#555", fontSize: 11, fontWeight: 700 }}>{s.l}</span>
           </div>
@@ -1264,13 +1474,13 @@ function ShipmentTracker() {
 
       {/* Tracking number input */}
       <div style={{ background: "#ffffff06", border: `1px solid ${accentColor}30`, borderRadius: 14, padding: 18, marginBottom: 18 }}>
-        <div style={{ color: "#888", fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 10 }}>Enter Your Tracking Number</div>
+        <div style={{ color: "var(--text-muted)", fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 10 }}>Enter Your Tracking Number</div>
         <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
           <input
             value={trackingNo}
             onChange={e => setTrackingNo(e.target.value)}
             placeholder="Paste B/L, Container No. or AWB — then click a carrier below"
-            style={{ flex: 1, minWidth: 220, background: "#0a0a18", border: `1px solid ${trackingNo ? accentColor + "60" : "#ffffff15"}`, borderRadius: 10, color: "#fff", padding: "11px 14px", fontSize: 14, outline: "none", fontFamily: "inherit", transition: "border .2s" }}
+            style={{ flex: 1, minWidth: 220, background: "var(--bg-input)", border: `1px solid ${trackingNo ? accentColor + "60" : "var(--border-input)"}`, borderRadius: 10, color: "var(--text-primary)", padding: "11px 14px", fontSize: 14, outline: "none", fontFamily: "inherit", transition: "border .2s" }}
           />
           {trackingNo && (
             <button onClick={copyNo} style={{ padding: "11px 16px", background: copied ? "#06D6A020" : "#ffffff08", border: `1px solid ${copied ? "#06D6A060" : "#ffffff15"}`, borderRadius: 10, color: copied ? "#06D6A0" : "#888", fontSize: 12, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap" }}>
@@ -1294,7 +1504,7 @@ function ShipmentTracker() {
           value={search}
           onChange={e => setSearch(e.target.value)}
           placeholder="Search carrier or region…"
-          style={{ flex: 1, minWidth: 180, background: "#0a0a18", border: "1px solid #ffffff12", borderRadius: 20, color: "#fff", padding: "8px 14px", fontSize: 12, outline: "none", fontFamily: "inherit" }}
+          style={{ flex: 1, minWidth: 180, background: "var(--bg-input)", border: "1px solid var(--border)", borderRadius: 20, color: "var(--text-primary)", padding: "8px 14px", fontSize: 12, outline: "none", fontFamily: "inherit" }}
         />
       </div>
 
@@ -1307,7 +1517,7 @@ function ShipmentTracker() {
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
               <span style={{ fontSize: 16 }}>{type === "sea" ? "🚢" : "✈️"}</span>
               <span style={{ color: "#555", fontSize: 10, fontWeight: 800, letterSpacing: 2, textTransform: "uppercase" }}>{type === "sea" ? "Ocean Carriers & Shipping Lines" : "Airlines & Air Couriers"}</span>
-              <div style={{ flex: 1, height: 1, background: "#ffffff08" }} />
+              <div style={{ flex: 1, height: 1, background: "var(--border)" }} />
               <span style={{ color: "#444", fontSize: 11 }}>{group.length} carriers</span>
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(210px,1fr))", gap: 8 }}>
@@ -1317,7 +1527,7 @@ function ShipmentTracker() {
                   onClick={() => openTracker(c)}
                   title={`Track with ${c.name} — ${c.field}`}
                   style={{
-                    background: "#0a0a18", border: "1px solid #ffffff0e",
+                    background: "var(--bg-card)", border: "1px solid var(--border)",
                     borderRadius: 12, padding: "13px 14px", cursor: "pointer",
                     transition: "all .15s", display: "flex", alignItems: "center", gap: 10,
                   }}
@@ -1328,8 +1538,8 @@ function ShipmentTracker() {
                   <div style={{ width: 3, height: 36, borderRadius: 2, background: c.color, flexShrink: 0 }} />
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ color: "#fff", fontWeight: 800, fontSize: 12, marginBottom: 2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{c.name}</div>
-                    <div style={{ color: "#444", fontSize: 10, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{c.field}</div>
-                    <div style={{ color: "#333", fontSize: 10, marginTop: 1 }}>{c.region}</div>
+                    <div style={{ color: "var(--text-muted)", fontSize: 10, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{c.field}</div>
+                    <div style={{ color: "var(--text-faint)", fontSize: 10, marginTop: 1 }}>{c.region}</div>
                   </div>
                   <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 4, flexShrink: 0 }}>
                     <span style={{ background: type === "sea" ? "#4361EE18" : "#FF6B3518", color: type === "sea" ? "#4361EE" : "#FF6B35", fontSize: 9, fontWeight: 800, letterSpacing: 1, padding: "2px 6px", borderRadius: 4 }}>{c.abbr}</span>
@@ -1489,7 +1699,7 @@ function DutyEstimator({ prefillCode }) {
     setCalcResult({ cif, duty, vat, total, localTotal, c, vatRate, dutyRate: lookupResult.duty });
   };
 
-  const si = { background: "#0a0a18", border: "1px solid #ffffff15", borderRadius: 8, color: "#fff", padding: "10px 12px", fontSize: 13, outline: "none", width: "100%", boxSizing: "border-box", fontFamily: "inherit" };
+  const si = { background: "var(--bg-input)", border: "1px solid var(--border-input)", borderRadius: 8, color: "var(--text-primary)", padding: "10px 12px", fontSize: 13, outline: "none", width: "100%", boxSizing: "border-box", fontFamily: "inherit" };
   const accentColor = "#EF476F";
 
   return (
@@ -1500,14 +1710,14 @@ function DutyEstimator({ prefillCode }) {
       </div>
 
       {/* Step 1 — HS Code lookup */}
-      <div style={{ background: "#ffffff05", border: "1px solid #ffffff0c", borderRadius: 14, padding: "18px 16px", marginBottom: 16 }}>
+      <div style={{ background: "var(--bg-section)", border: "1px solid var(--border)", borderRadius: 14, padding: "18px 16px", marginBottom: 16 }}>
         <div style={{ color: accentColor, fontSize: 10, fontWeight: 800, letterSpacing: 2, textTransform: "uppercase", marginBottom: 14, display: "flex", alignItems: "center", gap: 6 }}>
           <span style={{ background: accentColor, color: "#fff", borderRadius: "50%", width: 18, height: 18, display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 900 }}>1</span>
           Lookup Duty Rate by HS Code
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 14 }}>
           <div>
-            <label style={{ color: "#888", fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 5, display: "block" }}>HS Code (min 4 digits)</label>
+            <label style={{ color: "var(--text-muted)", fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 5, display: "block" }}>HS Code (min 4 digits)</label>
             <input
               type="text"
               value={hsInput}
@@ -1518,7 +1728,7 @@ function DutyEstimator({ prefillCode }) {
             />
           </div>
           <div>
-            <label style={{ color: "#888", fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 5, display: "block" }}>GCC Destination</label>
+            <label style={{ color: "var(--text-muted)", fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 5, display: "block" }}>GCC Destination</label>
             <select value={country} onChange={e => setCountry(e.target.value)} style={si}>
               {Object.entries(GCC_COUNTRIES).map(([k, v]) => <option key={k} value={k}>{v.name}</option>)}
             </select>
@@ -1530,7 +1740,7 @@ function DutyEstimator({ prefillCode }) {
 
       {/* Lookup Result */}
       {lookupResult && (
-        <div style={{ background: "#ffffff05", border: `1px solid ${accentColor}25`, borderRadius: 14, padding: "18px 16px", marginBottom: 16 }}>
+        <div style={{ background: "var(--bg-section)", border: `1px solid ${accentColor}25`, borderRadius: 14, padding: "18px 16px", marginBottom: 16 }}>
           <div style={{ marginBottom: 14 }}>
             <div style={{ color: accentColor, fontSize: 10, fontWeight: 800, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 4 }}>HS {lookupResult.code} — GCC Duty Rate</div>
             <div style={{ color: "#fff", fontSize: 16, fontWeight: 800 }}>{lookupResult.desc}</div>
@@ -1542,7 +1752,7 @@ function DutyEstimator({ prefillCode }) {
               { l: "Effective Rate", v: `${(lookupResult.duty + (lookupResult.vat !== undefined ? lookupResult.vat : GCC_COUNTRIES[country].vat)).toFixed(0)}%+`, s: "Combined estimate", col: "#888" },
             ].map(c => (
               <div key={c.l} style={{ background: c.highlight ? `${c.col}12` : "#0a0a18", border: `1px solid ${c.highlight ? c.col + "40" : "#ffffff10"}`, borderRadius: 10, padding: "12px 14px" }}>
-                <div style={{ color: "#555", fontSize: 10, fontWeight: 700, letterSpacing: 1.2, textTransform: "uppercase" }}>{c.l}</div>
+                <div style={{ color: "var(--text-muted)", fontSize: 10, fontWeight: 700, letterSpacing: 1.2, textTransform: "uppercase" }}>{c.l}</div>
                 <div style={{ color: c.col, fontSize: 20, fontWeight: 900, marginTop: 3 }}>{c.v}</div>
                 <div style={{ color: "#444", fontSize: 11, marginTop: 2 }}>{c.s}</div>
               </div>
@@ -1558,7 +1768,7 @@ function DutyEstimator({ prefillCode }) {
 
       {/* Step 2 — Landed Cost */}
       {lookupResult && (
-        <div style={{ background: "#ffffff05", border: "1px solid #ffffff0c", borderRadius: 14, padding: "18px 16px" }}>
+        <div style={{ background: "var(--bg-section)", border: "1px solid var(--border)", borderRadius: 14, padding: "18px 16px" }}>
           <div style={{ color: accentColor, fontSize: 10, fontWeight: 800, letterSpacing: 2, textTransform: "uppercase", marginBottom: 14, display: "flex", alignItems: "center", gap: 6 }}>
             <span style={{ background: accentColor, color: "#fff", borderRadius: "50%", width: 18, height: 18, display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 900 }}>2</span>
             Calculate Landed Cost
@@ -1566,7 +1776,7 @@ function DutyEstimator({ prefillCode }) {
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, marginBottom: 14 }}>
             {[["Cargo Value (USD)", cifValue, setCifValue, "50000"], ["Freight Cost (USD)", freightVal, setFreightVal, "2500"], ["Insurance (USD)", insVal, setInsVal, "600"]].map(([l, val, setter, ph]) => (
               <div key={l}>
-                <label style={{ color: "#888", fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 5, display: "block" }}>{l}</label>
+                <label style={{ color: "var(--text-muted)", fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 5, display: "block" }}>{l}</label>
                 <input type="number" value={val} onChange={e => setter(e.target.value)} placeholder={ph} style={si} />
               </div>
             ))}
@@ -1584,14 +1794,14 @@ function DutyEstimator({ prefillCode }) {
                   { l: "Tax Burden", v: `${(((calcResult.duty + calcResult.vat) / calcResult.cif) * 100).toFixed(1)}%`, s: "% of CIF" },
                 ].map(c => (
                   <div key={c.l} style={{ background: c.h ? `${accentColor}14` : "#0a0a18", border: `1px solid ${c.h ? accentColor + "50" : "#ffffff10"}`, borderRadius: 10, padding: "12px 14px" }}>
-                    <div style={{ color: "#555", fontSize: 10, fontWeight: 700, letterSpacing: 1.2, textTransform: "uppercase" }}>{c.l}</div>
+                    <div style={{ color: "var(--text-muted)", fontSize: 10, fontWeight: 700, letterSpacing: 1.2, textTransform: "uppercase" }}>{c.l}</div>
                     <div style={{ color: c.h ? accentColor : "#fff", fontSize: c.h ? 17 : 15, fontWeight: 800, marginTop: 3 }}>{c.v}</div>
-                    {c.s && <div style={{ color: "#555", fontSize: 11, marginTop: 2 }}>{c.s}</div>}
+                    {c.s && <div style={{ color: "var(--text-muted)", fontSize: 11, marginTop: 2 }}>{c.s}</div>}
                   </div>
                 ))}
               </div>
               {/* Breakdown bar */}
-              <div style={{ background: "#ffffff06", border: "1px solid #ffffff10", borderRadius: 10, padding: "12px 14px" }}>
+              <div style={{ background: "var(--bg-section)", border: "1px solid var(--border)", borderRadius: 10, padding: "12px 14px" }}>
                 <div style={{ color: "#555", fontSize: 10, fontWeight: 700, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 10 }}>Cost Breakdown</div>
                 {[
                   { l: "Cargo Value", v: parseFloat(cifValue) || 0, color: "#4361EE" },
@@ -1601,7 +1811,7 @@ function DutyEstimator({ prefillCode }) {
                 ].filter(s => s.v > 0).map(s => (
                   <div key={s.l} style={{ marginBottom: 8 }}>
                     <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
-                      <span style={{ color: "#aaa", fontSize: 12, fontWeight: 600 }}>{s.l}</span>
+                      <span style={{ color: "var(--text-secondary)", fontSize: 12, fontWeight: 600 }}>{s.l}</span>
                       <span style={{ color: "#555", fontSize: 12 }}>${s.v.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ({((s.v / calcResult.total) * 100).toFixed(1)}%)</span>
                     </div>
                     <div style={{ background: "#ffffff08", borderRadius: 4, height: 7, overflow: "hidden" }}>
@@ -1631,7 +1841,7 @@ function CarbonTool() {
     const compare = Object.entries(FACTORS).map(([m, fac]) => ({ m, co2: (wt / 1000) * dist * fac })).sort((a, b) => a.co2 - b.co2);
     setResult({ co2, trees: co2 / 21.77, cars: co2 / 120, compare });
   };
-  const si = { background: "#0a0a18", border: "1px solid #ffffff15", borderRadius: 8, color: "#fff", padding: "10px 12px", fontSize: 14, outline: "none", width: "100%", boxSizing: "border-box", fontFamily: "inherit" };
+  const si = { background: "var(--bg-input)", border: "1px solid var(--border-input)", borderRadius: 8, color: "var(--text-primary)", padding: "10px 12px", fontSize: 14, outline: "none", width: "100%", boxSizing: "border-box", fontFamily: "inherit" };
   return (
     <div>
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 14 }}>
@@ -1639,7 +1849,7 @@ function CarbonTool() {
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, marginBottom: 14 }}>
         {[{ k: "dist", l: "Distance (km)", ph: "12000" }, { k: "wt", l: "Weight (kg)", ph: "5000" }, { k: "cbm", l: "Or CBM", ph: "10" }].map(({ k, l, ph }) => (
-          <div key={k}><label style={{ color: "#888", fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 5, display: "block" }}>{l}</label><input type="number" value={f[k]} onChange={e => setF({ ...f, [k]: e.target.value })} placeholder={ph} style={si} /></div>
+          <div key={k}><label style={{ color: "var(--text-muted)", fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 5, display: "block" }}>{l}</label><input type="number" value={f[k]} onChange={e => setF({ ...f, [k]: e.target.value })} placeholder={ph} style={si} /></div>
         ))}
       </div>
       <button onClick={calc} style={{ padding: "12px 28px", background: "#52B788", border: "none", borderRadius: 12, color: "#fff", fontSize: 14, fontWeight: 800, cursor: "pointer" }}>Calculate Footprint</button>
@@ -1647,9 +1857,9 @@ function CarbonTool() {
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(130px,1fr))", gap: 10, marginBottom: 16 }}>
           {[{ l: "CO₂ Emitted", v: `${result.co2.toFixed(2)} kg`, s: `${(result.co2 / 1000).toFixed(3)} tonnes` }, { l: "Trees to Offset", v: result.trees.toFixed(1), s: "1 year each" }, { l: "Car Equivalent", v: `${result.cars.toFixed(0)} km`, h: true }].map(c => (
             <div key={c.l} style={{ background: c.h ? "#52B78815" : "#ffffff06", border: `1px solid ${c.h ? "#52B78845" : "#ffffff10"}`, borderRadius: 10, padding: "12px 14px" }}>
-              <div style={{ color: "#555", fontSize: 10, fontWeight: 700, letterSpacing: 1.2, textTransform: "uppercase" }}>{c.l}</div>
+              <div style={{ color: "var(--text-muted)", fontSize: 10, fontWeight: 700, letterSpacing: 1.2, textTransform: "uppercase" }}>{c.l}</div>
               <div style={{ color: c.h ? "#52B788" : "#fff", fontSize: 15, fontWeight: 800, marginTop: 3 }}>{c.v}</div>
-              {c.s && <div style={{ color: "#555", fontSize: 11 }}>{c.s}</div>}
+              {c.s && <div style={{ color: "var(--text-muted)", fontSize: 11 }}>{c.s}</div>}
             </div>
           ))}
         </div>
@@ -1657,9 +1867,9 @@ function CarbonTool() {
           <div key={m.m} style={{ marginBottom: 8 }}>
             <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
               <span style={{ color: "#ddd", fontSize: 12, fontWeight: 700 }}>{i === 0 ? "🌿 " : ""}{NAMES[m.m]}</span>
-              <span style={{ color: "#666", fontSize: 12 }}>{m.co2.toFixed(1)} kg CO₂{m.m === f.mode ? " ← current" : ""}</span>
+              <span style={{ color: "var(--text-muted)", fontSize: 12 }}>{m.co2.toFixed(1)} kg CO₂{m.m === f.mode ? " ← current" : ""}</span>
             </div>
-            <div style={{ background: "#ffffff08", borderRadius: 4, height: 8 }}>
+            <div style={{ background: "var(--bg-badge)", borderRadius: 4, height: 8 }}>
               <div style={{ height: "100%", width: `${(m.co2 / result.compare[result.compare.length - 1].co2) * 100}%`, background: m.m === "sea" || m.m === "rail" ? "#52B788" : m.m === "road" ? "#F77F00" : "#f55", borderRadius: 4, transition: "width .5s" }} />
             </div>
           </div>
@@ -1683,7 +1893,7 @@ function InsuranceTool() {
     const rate = RATES[f.mode][f.clause] / 100; const mult = CATS[f.cat].m;
     setResult({ iv, premium: Math.max(iv * rate * mult, 30), rate: rate * mult * 100 });
   };
-  const si = { background: "#0a0a18", border: "1px solid #ffffff15", borderRadius: 8, color: "#fff", padding: "10px 12px", fontSize: 14, outline: "none", width: "100%", boxSizing: "border-box", fontFamily: "inherit" };
+  const si = { background: "var(--bg-input)", border: "1px solid var(--border-input)", borderRadius: 8, color: "var(--text-primary)", padding: "10px 12px", fontSize: 14, outline: "none", width: "100%", boxSizing: "border-box", fontFamily: "inherit" };
   const ICC_RISKS = [
     { risk: "Fire or explosion", A: true, B: true, C: true },
     { risk: "Stranding, grounding, sinking or capsizing of vessel", A: true, B: true, C: true },
@@ -1707,10 +1917,10 @@ function InsuranceTool() {
   return (
     <div>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 14 }}>
-        <div><label style={{ color: "#888", fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 5, display: "block" }}>Cargo Value (USD)</label><input type="number" value={f.value} onChange={e => setF({ ...f, value: e.target.value })} placeholder="10000" style={si} /></div>
-        <div><label style={{ color: "#888", fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 5, display: "block" }}>Freight Cost (USD)</label><input type="number" value={f.freight} onChange={e => setF({ ...f, freight: e.target.value })} placeholder="800" style={si} /></div>
-        <div><label style={{ color: "#888", fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 5, display: "block" }}>Transport Mode</label><select value={f.mode} onChange={e => setF({ ...f, mode: e.target.value })} style={si}><option value="sea">🚢 Sea</option><option value="air">✈️ Air</option><option value="road">🚛 Road</option></select></div>
-        <div><label style={{ color: "#888", fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 5, display: "block" }}>Cargo Category</label><select value={f.cat} onChange={e => setF({ ...f, cat: e.target.value })} style={si}>{Object.entries(CATS).map(([k, v]) => <option key={k} value={k}>{v.l}</option>)}</select></div>
+        <div><label style={{ color: "var(--text-muted)", fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 5, display: "block" }}>Cargo Value (USD)</label><input type="number" value={f.value} onChange={e => setF({ ...f, value: e.target.value })} placeholder="10000" style={si} /></div>
+        <div><label style={{ color: "var(--text-muted)", fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 5, display: "block" }}>Freight Cost (USD)</label><input type="number" value={f.freight} onChange={e => setF({ ...f, freight: e.target.value })} placeholder="800" style={si} /></div>
+        <div><label style={{ color: "var(--text-muted)", fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 5, display: "block" }}>Transport Mode</label><select value={f.mode} onChange={e => setF({ ...f, mode: e.target.value })} style={si}><option value="sea">🚢 Sea</option><option value="air">✈️ Air</option><option value="road">🚛 Road</option></select></div>
+        <div><label style={{ color: "var(--text-muted)", fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 5, display: "block" }}>Cargo Category</label><select value={f.cat} onChange={e => setF({ ...f, cat: e.target.value })} style={si}>{Object.entries(CATS).map(([k, v]) => <option key={k} value={k}>{v.l}</option>)}</select></div>
       </div>
       <div style={{ marginBottom: 14 }}>
         <div style={{ color: "#888", fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 8 }}>ICC Clause (Coverage Level)</div>
@@ -1727,27 +1937,27 @@ function InsuranceTool() {
       {result && <div style={{ marginBottom: 20, display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(130px,1fr))", gap: 10 }}>
         {[{ l: "Insured Value", v: `$${result.iv.toFixed(2)}`, s: "CIF + 10%" }, { l: "Rate Applied", v: `${result.rate.toFixed(3)}%`, s: `ICC(${f.clause}) + category` }, { l: "Est. Premium", v: `$${result.premium.toFixed(2)}`, h: true }, { l: "Coverage Level", v: f.clause === "A" ? "All Risks" : f.clause === "B" ? "Named Perils" : "Minimum", s: `ICC Clause (${f.clause})` }].map(c => (
           <div key={c.l} style={{ background: c.h ? "#FB560715" : "#0a0a18", border: `1px solid ${c.h ? "#FB560750" : "#ffffff10"}`, borderRadius: 10, padding: "12px 14px" }}>
-            <div style={{ color: "#555", fontSize: 10, fontWeight: 700, letterSpacing: 1.2, textTransform: "uppercase" }}>{c.l}</div>
+            <div style={{ color: "var(--text-muted)", fontSize: 10, fontWeight: 700, letterSpacing: 1.2, textTransform: "uppercase" }}>{c.l}</div>
             <div style={{ color: c.h ? "#FB5607" : "#fff", fontSize: 15, fontWeight: 800, marginTop: 3 }}>{c.v}</div>
-            {c.s && <div style={{ color: "#555", fontSize: 11, marginTop: 2 }}>{c.s}</div>}
+            {c.s && <div style={{ color: "var(--text-muted)", fontSize: 11, marginTop: 2 }}>{c.s}</div>}
           </div>
         ))}
       </div>}
       {showTable && (
-        <div style={{ background: "#0a0a18", border: "1px solid #ffffff12", borderRadius: 14, overflow: "hidden", marginBottom: 14 }}>
+        <div style={{ background: "var(--bg-card)", border: "1px solid var(--border)", borderRadius: 14, overflow: "hidden", marginBottom: 14 }}>
           <div style={{ padding: "14px 16px", borderBottom: "1px solid #ffffff08" }}>
-            <div style={{ color: "#fff", fontWeight: 800, fontSize: 14, marginBottom: 4 }}>ICC Clauses — Coverage Comparison</div>
-            <div style={{ color: "#555", fontSize: 11 }}>Institute Cargo Clauses (LMA/IUA, 2009 revision). Standard for all marine cargo insurance globally.</div>
+            <div style={{ color: "var(--text-primary)", fontWeight: 800, fontSize: 14, marginBottom: 4 }}>ICC Clauses — Coverage Comparison</div>
+            <div style={{ color: "var(--text-muted)", fontSize: 11 }}>Institute Cargo Clauses (LMA/IUA, 2009 revision). Standard for all marine cargo insurance globally.</div>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 70px 70px 70px", background: "#ffffff06", padding: "10px 16px", borderBottom: "1px solid #ffffff08" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 70px 70px 70px", background: "var(--bg-section)", padding: "10px 16px", borderBottom: "1px solid var(--border)" }}>
             <div style={{ color: "#555", fontSize: 10, fontWeight: 800, letterSpacing: 1, textTransform: "uppercase" }}>Risk / Peril</div>
             {[["A", "#06D6A0"], ["B", "#FFD166"], ["C", "#FF6B35"]].map(([cl, col]) => (
               <div key={cl} style={{ color: col, fontSize: 10, fontWeight: 800, letterSpacing: 1, textTransform: "uppercase", textAlign: "center" }}>ICC({cl})</div>
             ))}
           </div>
           {ICC_RISKS.map((row, i) => (
-            <div key={i} style={{ display: "grid", gridTemplateColumns: "1fr 70px 70px 70px", padding: "9px 16px", borderBottom: i < ICC_RISKS.length - 1 ? "1px solid #ffffff05" : "none", background: i % 2 === 0 ? "transparent" : "#ffffff02" }}>
-              <div style={{ color: "#bbb", fontSize: 12, paddingRight: 12, lineHeight: 1.4 }}>{row.risk}</div>
+            <div key={i} style={{ display: "grid", gridTemplateColumns: "1fr 70px 70px 70px", padding: "9px 16px", borderBottom: i < ICC_RISKS.length - 1 ? "1px solid var(--border-subtle)" : "none", background: i % 2 === 0 ? "transparent" : "var(--bg-row-alt)" }}>
+              <div style={{ color: "var(--text-secondary)", fontSize: 12, paddingRight: 12, lineHeight: 1.4 }}>{row.risk}</div>
               {[row.A, row.B, row.C].map((covered, j) => (
                 <div key={j} style={{ textAlign: "center", display: "flex", alignItems: "center", justifyContent: "center" }}>
                   {covered ? <span style={{ color: "#06D6A0", fontSize: 15, fontWeight: 900 }}>✓</span> : <span style={{ color: "#2a2a3a", fontSize: 15 }}>—</span>}
@@ -1755,12 +1965,12 @@ function InsuranceTool() {
               ))}
             </div>
           ))}
-          <div style={{ padding: "12px 16px", borderTop: "1px solid #ffffff08", background: "#ffffff04" }}>
+          <div style={{ padding: "12px 16px", borderTop: "1px solid var(--border)", background: "var(--bg-section)" }}>
             <div style={{ color: "#444", fontSize: 11, lineHeight: 1.6 }}>⚠️ <strong style={{ color: "#555" }}>Common Exclusions (all clauses):</strong> Inherent vice, delay, war risks (covered by IWC), strikes (covered by ISC), wilful misconduct, normal wear & tear, inadequate packing, nuclear risks.</div>
           </div>
         </div>
       )}
-      <div style={{ background: "#ffffff04", border: "1px solid #ffffff08", borderRadius: 10, padding: "10px 14px", fontSize: 11, color: "#444", lineHeight: 1.6 }}>
+      <div style={{ background: "var(--bg-section)", border: "1px solid var(--border)", borderRadius: 10, padding: "10px 14px", fontSize: 11, color: "var(--text-muted)", lineHeight: 1.6 }}>
         📌 Insured value = CIF + 10% per standard trade practice. Premium estimates are indicative. Actual rates vary by insurer, commodity, and route. Always consult a licensed marine insurance broker.
       </div>
     </div>
@@ -1795,25 +2005,16 @@ function App() {
   if (!user) return <LeadGate onUnlock={setUser} />;
 
   return (
-    <div style={{ minHeight: "100vh", background: "#07070F", fontFamily: "'DM Sans', 'Nunito', sans-serif", color: "#fff" }}>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap');
-        @keyframes pop { from { transform: scale(.92); opacity: 0 } to { transform: scale(1); opacity: 1 } }
-        * { box-sizing: border-box; }
-        input, select, button { font-family: inherit; }
-        input::placeholder { color: #333; }
-        ::-webkit-scrollbar { width: 5px; height: 5px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #222; border-radius: 3px; }
-      `}</style>
+    <div style={{ minHeight: "100vh", background: "var(--bg-page)", fontFamily: "'DM Sans', 'Nunito', sans-serif", color: "var(--text-primary)" }}>
+
 
       {/* Header */}
-      <div style={{ borderBottom: "1px solid #ffffff08", padding: "16px 24px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 10 }}>
+      <div style={{ borderBottom: "1px solid var(--border)", padding: "16px 24px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 10, background: "var(--bg-card)" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
           <span style={{ fontSize: 24 }}>⚓</span>
           <div>
-            <div style={{ fontSize: 16, fontWeight: 800, color: "#fff" }}>FreightTools Pro</div><div style={{ fontSize: 10, color: "#1a6fbd", fontWeight: 700, letterSpacing: 0.5, marginTop: 1 }}>by Sasco Global Group</div>
-            <div style={{ fontSize: 11, color: "#555" }}>
+            <div style={{ fontSize: 16, fontWeight: 800, color: "var(--text-primary)" }}>FreightTools Pro</div><div style={{ fontSize: 10, color: "#1a6fbd", fontWeight: 700, letterSpacing: 0.5, marginTop: 1 }}>by Sasco Global Group</div>
+            <div style={{ fontSize: 11, color: "var(--text-muted)" }}>
               Welcome, <span style={{ color: "#4361EE" }}>{user.name.split(" ")[0]}</span> ·{" "}
               <span style={{ background: user.type === "freight_forwarder" ? "#4361EE20" : "#FF6B3520", color: user.type === "freight_forwarder" ? "#4361EE" : "#FF6B35", padding: "1px 7px", borderRadius: 20, fontSize: 10, fontWeight: 700 }}>
                 {user.type === "freight_forwarder" ? "🏢 Freight Forwarder" : "📦 End User"}
@@ -1821,11 +2022,14 @@ function App() {
             </div>
           </div>
         </div>
-        {active && (
-          <button onClick={() => setActive(null)} style={{ padding: "8px 16px", background: "#ffffff08", border: "1px solid #ffffff12", borderRadius: 20, color: "#aaa", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
-            ← All Tools
-          </button>
-        )}
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          {active && (
+            <button onClick={() => setActive(null)} style={{ padding: "8px 16px", background: "rgba(255,255,255,0.05)", border: "1px solid var(--border)", borderRadius: 20, color: "var(--text-muted)", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
+              ← All Tools
+            </button>
+          )}
+          <ThemeToggle />
+        </div>
       </div>
 
       {!active ? (
@@ -1834,8 +2038,8 @@ function App() {
           <div style={{ display: "flex", justifyContent: "center", gap: 36, padding: "28px 24px 20px", flexWrap: "wrap" }}>
             {[{ n: "9", l: "Free Tools" }, { n: "50+", l: "Ports" }, { n: "12", l: "Carriers" }, { n: "11", l: "Incoterms" }].map(s => (
               <div key={s.l} style={{ textAlign: "center" }}>
-                <div style={{ fontSize: 24, fontWeight: 800, color: "#FF6B35" }}>{s.n}</div>
-                <div style={{ color: "#444", fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase" }}>{s.l}</div>
+                <div style={{ fontSize: 24, fontWeight: 800, color: "var(--accent-orange)" }}>{s.n}</div>
+                <div style={{ color: "var(--text-muted)", fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase" }}>{s.l}</div>
               </div>
             ))}
           </div>
@@ -1844,7 +2048,7 @@ function App() {
           <div style={{ maxWidth: 1080, margin: "0 auto", padding: "0 20px 60px", display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(270px,1fr))", gap: 12 }}>
             {TOOLS.map(t => (
               <div key={t.id} onClick={() => setActive(t.id)} style={{
-                background: "#0d0d1f", border: "1px solid #ffffff0c",
+                background: "var(--bg-card)", border: "1px solid var(--border)",
                 borderRadius: 16, padding: "20px", cursor: "pointer", position: "relative", overflow: "hidden",
                 transition: "transform .18s, box-shadow .18s, border-color .18s",
               }}
@@ -1856,30 +2060,30 @@ function App() {
                   <span style={{ fontSize: 28 }}>{t.icon}</span>
                   <span style={{ background: `${t.accent}18`, color: t.accent, fontSize: 9, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", padding: "3px 8px", borderRadius: 20 }}>{t.cat}</span>
                 </div>
-                <h3 style={{ color: "#fff", fontSize: 14, fontWeight: 800, margin: "0 0 6px" }}>{t.name}</h3>
-                <p style={{ color: "#444", fontSize: 12, lineHeight: 1.5, margin: "0 0 14px" }}>{t.desc}</p>
+                <h3 style={{ color: "var(--text-primary)", fontSize: 14, fontWeight: 800, margin: "0 0 6px" }}>{t.name}</h3>
+                <p style={{ color: "var(--text-muted)", fontSize: 12, lineHeight: 1.5, margin: "0 0 14px" }}>{t.desc}</p>
                 <div style={{ color: t.accent, fontSize: 12, fontWeight: 700 }}>Open Tool →</div>
               </div>
             ))}
           </div>
         </>
       ) : (
-        <div style={{ maxWidth: 920, margin: "0 auto", padding: "24px 20px 60px" }}>
+        <div style={{ maxWidth: 920, margin: "0 auto", padding: "24px 20px 60px", background: "var(--bg-page)" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 22, flexWrap: "wrap" }}>
             <span style={{ fontSize: 32 }}>{activeMeta.icon}</span>
             <div>
               <span style={{ background: `${activeMeta.accent}18`, color: activeMeta.accent, fontSize: 9, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", padding: "3px 9px", borderRadius: 20, display: "inline-block", marginBottom: 4 }}>{activeMeta.cat}</span>
-              <h2 style={{ color: "#fff", fontSize: 20, fontWeight: 800, margin: 0 }}>{activeMeta.name}</h2>
+              <h2 style={{ color: "var(--text-primary)", fontSize: 20, fontWeight: 800, margin: 0 }}>{activeMeta.name}</h2>
             </div>
           </div>
-          <div style={{ background: "#0d0d1f", border: `1px solid ${activeMeta.accent}22`, borderRadius: 18, padding: "26px 22px" }}>
+          <div style={{ background: "var(--bg-card)", border: `1px solid ${activeMeta.accent}22`, borderRadius: 18, padding: "26px 22px" }}>
             <ActiveTool onSendToDuty={active === "hscode" ? handleSendToDuty : undefined} prefillCode={active === "duty" ? dutyPrefill : undefined} />
           </div>
           <div style={{ marginTop: 28 }}>
-            <div style={{ color: "#333", fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 12 }}>Other Tools</div>
+            <div style={{ color: "var(--text-faint)", fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 12 }}>Other Tools</div>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
               {TOOLS.filter(t => t.id !== active).map(t => (
-                <button key={t.id} onClick={() => setActive(t.id)} style={{ padding: "7px 13px", background: "#0d0d1f", border: "1px solid #ffffff0c", borderRadius: 20, color: "#666", fontSize: 11, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", gap: 5, transition: "all .15s" }}
+                <button key={t.id} onClick={() => setActive(t.id)} style={{ padding: "7px 13px", background: "var(--bg-card)", border: "1px solid var(--border)", borderRadius: 20, color: "var(--text-muted)", fontSize: 11, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", gap: 5, transition: "all .15s" }}
                   onMouseEnter={e => { e.currentTarget.style.borderColor = t.accent + "50"; e.currentTarget.style.color = t.accent; }}
                   onMouseLeave={e => { e.currentTarget.style.borderColor = "#ffffff0c"; e.currentTarget.style.color = "#666"; }}
                 >{t.icon} {t.name}</button>
@@ -1896,10 +2100,10 @@ function App() {
 function Footer({ onTerms }) {
   return (
     <footer style={{
-      borderTop: "1px solid #ffffff08",
+      borderTop: "1px solid var(--border)",
       padding: "28px 24px",
       marginTop: 40,
-      background: "#07070F",
+      background: "var(--bg-card)",
     }}>
       <div style={{ maxWidth: 900, margin: "0 auto" }}>
         {/* Brand row */}
@@ -1909,7 +2113,7 @@ function Footer({ onTerms }) {
               <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#1a6fbd" }} />
               <span style={{ color: "#fff", fontWeight: 900, fontSize: 14, letterSpacing: 0.5 }}>Sasco Global Group of Companies</span>
             </div>
-            <div style={{ color: "#444", fontSize: 12, lineHeight: 1.7, maxWidth: 320 }}>
+            <div style={{ color: "var(--text-muted)", fontSize: 12, lineHeight: 1.7, maxWidth: 320 }}>
               Freight forwarding, customs clearance, documentation & warehousing.<br />
               Jebel Ali Freezone South, Dubai, UAE — Est. 1996
             </div>
@@ -1928,11 +2132,11 @@ function Footer({ onTerms }) {
         </div>
 
         {/* Divider */}
-        <div style={{ height: 1, background: "#ffffff06", marginBottom: 16 }} />
+        <div style={{ height: 1, background: "var(--border)", marginBottom: 16 }} />
 
         {/* Bottom row */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 10 }}>
-          <div style={{ color: "#333", fontSize: 11 }}>
+          <div style={{ color: "var(--text-muted)", fontSize: 11 }}>
             © {new Date().getFullYear()} Sasco Global Group of Companies. All rights reserved. FreightTools Pro is a free resource generated by Sasco Global for the freight and logistics community.
           </div>
           <div style={{ display: "flex", gap: 16 }}>
@@ -1954,7 +2158,7 @@ function TermsModal({ onClose }) {
   return (
     <div style={{
       position: "fixed", inset: 0, zIndex: 9999,
-      background: "rgba(0,0,0,0.85)",
+      background: "rgba(0,0,0,0.75)",
       display: "flex", alignItems: "center", justifyContent: "center",
       padding: 20,
     }} onClick={onClose}>
@@ -1974,16 +2178,16 @@ function TermsModal({ onClose }) {
         }}
       >
         {/* Header */}
-        <div style={{ padding: "20px 24px", borderBottom: "1px solid #ffffff0c", display: "flex", justifyContent: "space-between", alignItems: "center", flexShrink: 0 }}>
+        <div style={{ padding: "20px 24px", borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center", flexShrink: 0 }}>
           <div>
-            <div style={{ color: "#fff", fontWeight: 900, fontSize: 16 }}>Terms & Conditions / Disclaimer</div>
-            <div style={{ color: "#444", fontSize: 11, marginTop: 3 }}>FreightTools Pro — Sasco Global Group of Companies</div>
+            <div style={{ color: "var(--text-primary)", fontWeight: 900, fontSize: 16 }}>Terms & Conditions / Disclaimer</div>
+            <div style={{ color: "var(--text-muted)", fontSize: 11, marginTop: 3 }}>FreightTools Pro — Sasco Global Group of Companies</div>
           </div>
-          <button onClick={onClose} style={{ background: "#ffffff10", border: "none", color: "#888", borderRadius: 8, width: 32, height: 32, cursor: "pointer", fontSize: 16, display: "flex", alignItems: "center", justifyContent: "center" }}>✕</button>
+          <button onClick={onClose} style={{ background: "var(--bg-badge)", border: "none", color: "var(--text-muted)", borderRadius: 8, width: 32, height: 32, cursor: "pointer", fontSize: 16, display: "flex", alignItems: "center", justifyContent: "center" }}>✕</button>
         </div>
 
         {/* Scrollable body */}
-        <div style={{ overflowY: "auto", padding: "24px", color: "#aaa", fontSize: 12, lineHeight: 1.8 }}>
+        <div style={{ overflowY: "auto", padding: "24px", color: "var(--text-secondary)", fontSize: 12, lineHeight: 1.8 }}>
 
           <Section title="1. Acceptance of Terms">
             By accessing and using FreightTools Pro ("the Platform"), you confirm that you have read, understood, and agree to be bound by these Terms and Conditions. If you do not agree, please discontinue use immediately. These terms are governed by the laws of the United Arab Emirates, and any disputes shall be subject to the exclusive jurisdiction of the courts of Dubai, UAE.
@@ -2060,7 +2264,7 @@ function TermsModal({ onClose }) {
         </div>
 
         {/* Footer button */}
-        <div style={{ padding: "16px 24px", borderTop: "1px solid #ffffff0c", flexShrink: 0, display: "flex", justifyContent: "flex-end" }}>
+        <div style={{ padding: "16px 24px", borderTop: "1px solid var(--border)", flexShrink: 0, display: "flex", justifyContent: "flex-end" }}>
           <button onClick={onClose} style={{ padding: "10px 24px", background: "#1a6fbd", border: "none", borderRadius: 10, color: "#fff", fontSize: 13, fontWeight: 800, cursor: "pointer" }}>I Understand — Close</button>
         </div>
       </div>
@@ -2071,7 +2275,7 @@ function TermsModal({ onClose }) {
 function Section({ title, children }) {
   return (
     <div style={{ marginBottom: 20 }}>
-      <div style={{ color: "#ddd", fontWeight: 800, fontSize: 13, marginBottom: 6, borderLeft: "3px solid #1a6fbd", paddingLeft: 10 }}>{title}</div>
+      <div style={{ color: "var(--text-primary)", fontWeight: 800, fontSize: 13, marginBottom: 6, borderLeft: "3px solid #1a6fbd", paddingLeft: 10 }}>{title}</div>
       <div style={{ paddingLeft: 13 }}>{children}</div>
     </div>
   );
@@ -2090,7 +2294,11 @@ function Root() {
 }
 
     const root = ReactDOM.createRoot(document.getElementById('root'));
-    root.render(<Root />);
+    root.render(
+      <ThemeProvider>
+        <Root />
+      </ThemeProvider>
+    );
   </script>
 </body>
 </html>
