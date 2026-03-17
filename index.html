@@ -270,11 +270,24 @@ function LeadGate({ onUnlock }) {
     return e;
   };
 
-  const submit = () => {
+  const SHEETS_URL = "https://script.google.com/macros/s/AKfycbxN1l53SG_6g5h91zuzr1hq4P5FT5QACyj7vqmlC3KN6zcLNwxy_lcv8FapDfwyX88m/exec";
+
+  const submit = async () => {
     const e = validate();
     if (Object.keys(e).length) { setErrors(e); return; }
     setLoading(true);
-    setTimeout(() => { setLoading(false); setDone(true); }, 1000);
+    try {
+      await fetch(SHEETS_URL, {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: f.name, email: f.email, phone: f.phone, company: f.company, type: f.type })
+      });
+    } catch (err) {
+      console.error("Lead capture error:", err);
+    }
+    setLoading(false);
+    setDone(true);
   };
 
   const inp = (err) => ({
@@ -439,7 +452,7 @@ function LeadGate({ onUnlock }) {
 
 // ─── TOOL: CBM + CHARGEABLE WEIGHT ───────────────────────────────────────────
 function CBMTool() {
-  const [rows, setRows] = useState([{ l: "", w: "", h: "", qty: "1", wt: "", unit: "cm" }]);
+  const [rows, setRows] = useState([{ l: "", w: "", h: "", qty: "1", wt: "", unit: "cm", stackable: true }]);
   const [mode, setMode] = useState("air");
   const results = rows.map(r => {
     const f = r.unit === "in" ? 2.54 : r.unit === "m" ? 100 : 1;
@@ -450,10 +463,11 @@ function CBMTool() {
     const div = mode === "air" ? 6000 : mode === "sea" ? 1000 : 5000;
     const volWt = (L * W * H * qty) / div;
     const actWt = wt * qty;
-    return { cbm, volWt, actWt, chargeable: Math.max(volWt, actWt) };
+    return { cbm, volWt, actWt, chargeable: Math.max(volWt, actWt), stackable: r.stackable };
   }).filter(Boolean);
   const T = results.reduce((a, r) => ({ cbm: a.cbm + r.cbm, volWt: a.volWt + r.volWt, actWt: a.actWt + r.actWt, chargeable: a.chargeable + r.chargeable }), { cbm: 0, volWt: 0, actWt: 0, chargeable: 0 });
-  const addRow = () => setRows([...rows, { l: "", w: "", h: "", qty: "1", wt: "", unit: "cm" }]);
+  const hasNonStackable = results.some(r => !r.stackable);
+  const addRow = () => setRows([...rows, { l: "", w: "", h: "", qty: "1", wt: "", unit: "cm", stackable: true }]);
   const upd = (i, k, v) => setRows(rows.map((r, idx) => idx === i ? { ...r, [k]: v } : r));
   const rem = i => rows.length > 1 && setRows(rows.filter((_, idx) => idx !== i));
   const containers = [{ n: "20ft", c: 25 }, { n: "40ft", c: 55 }, { n: "40ft HQ", c: 68 }];
@@ -467,22 +481,32 @@ function CBMTool() {
       </div>
       <div style={{ overflowX: "auto" }}>
         <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
-          <thead><tr>{["Unit", "L", "W", "H", "Qty", "Wt/pc (kg)", ""].map(h => <th key={h} style={{ color: "#555", fontSize: 10, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", padding: "6px 5px", textAlign: "left" }}>{h}</th>)}</tr></thead>
+          <thead><tr>{["Unit", "L", "W", "H", "Qty", "Wt/pc (kg)", "Stackable", ""].map(h => <th key={h} style={{ color: "#555", fontSize: 10, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", padding: "6px 5px", textAlign: "left" }}>{h}</th>)}</tr></thead>
           <tbody>{rows.map((r, i) => (
             <tr key={i}>
               <td style={{ padding: "4px 3px" }}><select value={r.unit} onChange={e => upd(i, "unit", e.target.value)} style={{ ...si, width: 65 }}><option value="cm">cm</option><option value="in">in</option><option value="m">m</option></select></td>
               {["l", "w", "h"].map(k => <td key={k} style={{ padding: "4px 3px" }}><input type="number" min="0" value={r[k]} onChange={e => upd(i, k, e.target.value)} placeholder="0" style={{ ...si, width: 72 }} /></td>)}
               <td style={{ padding: "4px 3px" }}><input type="number" min="1" value={r.qty} onChange={e => upd(i, "qty", e.target.value)} style={{ ...si, width: 55 }} /></td>
               <td style={{ padding: "4px 3px" }}><input type="number" min="0" value={r.wt} onChange={e => upd(i, "wt", e.target.value)} placeholder="0" style={{ ...si, width: 85 }} /></td>
+              <td style={{ padding: "4px 3px", textAlign: "center" }}>
+                <button onClick={() => upd(i, "stackable", !r.stackable)} style={{ padding: "5px 10px", borderRadius: 20, fontSize: 11, fontWeight: 700, cursor: "pointer", background: r.stackable ? "#06D6A020" : "#f5540018", border: `1px solid ${r.stackable ? "#06D6A0" : "#f55"}`, color: r.stackable ? "#06D6A0" : "#f55", whiteSpace: "nowrap" }}>
+                  {r.stackable ? "✅ Stack" : "🚫 No Stack"}
+                </button>
+              </td>
               <td style={{ padding: "4px 3px" }}><button onClick={() => rem(i)} style={{ background: "#f5540018", border: "1px solid #f5540030", color: "#f55", borderRadius: 6, padding: "6px 9px", cursor: "pointer", fontSize: 12 }}>✕</button></td>
             </tr>
           ))}</tbody>
         </table>
       </div>
       <button onClick={addRow} style={{ marginTop: 10, padding: "7px 14px", background: "#ffffff08", border: "1px solid #ffffff12", borderRadius: 8, color: "#777", fontSize: 12, cursor: "pointer" }}>+ Add Row</button>
+      {hasNonStackable && (
+        <div style={{ marginTop: 10, padding: "10px 14px", background: "#f5540012", border: "1px solid #f5540040", borderRadius: 8, color: "#f98", fontSize: 12 }}>
+          ⚠️ Non-stackable items detected — these must be loaded last (top layer only), reducing effective volume utilisation.
+        </div>
+      )}
       {T.cbm > 0 && <>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(130px,1fr))", gap: 10, marginTop: 20 }}>
-          {[{ l: "Total CBM", v: T.cbm.toFixed(4), s: `${(T.cbm * 35.315).toFixed(2)} CFT` }, { l: "Volumetric Wt", v: `${T.volWt.toFixed(2)} kg`, s: `${(T.volWt * 2.205).toFixed(1)} lbs` }, { l: "Actual Wt", v: `${T.actWt.toFixed(2)} kg`, s: `${(T.actWt * 2.205).toFixed(1)} lbs` }, { l: "Chargeable Wt", v: `${T.chargeable.toFixed(2)} kg`, s: T.volWt > T.actWt ? "📐 Vol. wins" : "⚖️ Actual wins", h: true }].map(c => (
+          {[{ l: "Total CBM", v: `${T.cbm.toFixed(4)} CBM`, s: `= ${(T.cbm * 35.315).toFixed(2)} CFT` }, { l: "Volumetric Wt", v: `${T.volWt.toFixed(2)} kg`, s: `${(T.volWt * 2.205).toFixed(1)} lbs` }, { l: "Actual Wt", v: `${T.actWt.toFixed(2)} kg`, s: `${(T.actWt * 2.205).toFixed(1)} lbs` }, { l: "Chargeable Wt", v: `${T.chargeable.toFixed(2)} kg`, s: T.volWt > T.actWt ? "📐 Vol. wins" : "⚖️ Actual wins", h: true }].map(c => (
             <div key={c.l} style={{ background: c.h ? "#FF6B3512" : "#ffffff06", border: `1px solid ${c.h ? "#FF6B3545" : "#ffffff10"}`, borderRadius: 10, padding: "12px 14px" }}>
               <div style={{ color: "#666", fontSize: 10, fontWeight: 700, letterSpacing: 1.2, textTransform: "uppercase" }}>{c.l}</div>
               <div style={{ color: c.h ? "#FF6B35" : "#fff", fontSize: 17, fontWeight: 800, margin: "4px 0 2px" }}>{c.v}</div>
