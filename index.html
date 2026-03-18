@@ -454,6 +454,30 @@ function LeadGate({ onUnlock }) {
 function CBMTool() {
   const [rows, setRows] = useState([{ l: "", w: "", h: "", qty: "1", wt: "", unit: "cm", stackable: true }]);
   const [mode, setMode] = useState("air");
+  const [volUnit, setVolUnit] = useState("cbm"); // "cbm" or "cft"
+
+  const CBM_CONTAINERS = [
+    { n: "LCL",             cbm: null,  maxWt: null,  icon: "📦", dims: "Pay per CBM — shared container",      color: "#4361EE", tag: "lcl" },
+    { n: "20ft Standard",   cbm: 28,    maxWt: 28000, icon: "🚢", dims: "5.90m × 2.35m × 2.39m",              color: "#06D6A0", tag: "20std" },
+    { n: "40ft Standard",   cbm: 67,    maxWt: 29000, icon: "🚢", dims: "12.03m × 2.35m × 2.39m",             color: "#06D6A0", tag: "40std" },
+    { n: "40ft High Cube",  cbm: 76,    maxWt: 29000, icon: "🚢", dims: "12.03m × 2.35m × 2.70m — extra height", color: "#4361EE", tag: "40hq" },
+    { n: "45ft High Cube",  cbm: 86,    maxWt: 27500, icon: "🚢", dims: "13.55m × 2.35m × 2.70m",             color: "#4361EE", tag: "45hq" },
+    { n: "20ft Reefer",     cbm: 26,    maxWt: 27700, icon: "❄️", dims: "5.44m × 2.27m × 2.25m — temp control", color: "#7209B7", tag: "20rf" },
+    { n: "40ft Reefer",     cbm: 59,    maxWt: 29000, icon: "❄️", dims: "11.58m × 2.29m × 2.25m — temp control", color: "#7209B7", tag: "40rf" },
+    { n: "20ft Open Top",   cbm: 32,    maxWt: 28200, icon: "🏗️", dims: "5.89m × 2.35m × 2.35m — no roof",    color: "#F72585", tag: "20ot" },
+    { n: "40ft Open Top",   cbm: 65,    maxWt: 29000, icon: "🏗️", dims: "12.01m × 2.35m × 2.35m — no roof",   color: "#F72585", tag: "40ot" },
+    { n: "20ft Flat Rack",  cbm: null,  maxWt: 45000, icon: "🔩", dims: "5.94m × 2.40m — open sides & top",   color: "#FF6B35", tag: "20fr" },
+    { n: "40ft Flat Rack",  cbm: null,  maxWt: 40000, icon: "🔩", dims: "12.13m × 2.40m — open sides & top",  color: "#FF6B35", tag: "40fr" },
+  ];
+
+  const fmt = (cbmVal) => volUnit === "cft"
+    ? `${(cbmVal * 35.315).toFixed(2)} CFT`
+    : `${cbmVal.toFixed(4)} CBM`;
+  const fmtShort = (cbmVal) => volUnit === "cft"
+    ? `${(cbmVal * 35.315).toFixed(1)} CFT`
+    : `${cbmVal.toFixed(2)} CBM`;
+  const capVal = (cbmVal) => volUnit === "cft" ? cbmVal * 35.315 : cbmVal;
+
   const results = rows.map(r => {
     const f = r.unit === "in" ? 2.54 : r.unit === "m" ? 100 : 1;
     const L = parseFloat(r.l) * f, W = parseFloat(r.w) * f, H = parseFloat(r.h) * f;
@@ -465,20 +489,37 @@ function CBMTool() {
     const actWt = wt * qty;
     return { cbm, volWt, actWt, chargeable: Math.max(volWt, actWt), stackable: r.stackable };
   }).filter(Boolean);
+
   const T = results.reduce((a, r) => ({ cbm: a.cbm + r.cbm, volWt: a.volWt + r.volWt, actWt: a.actWt + r.actWt, chargeable: a.chargeable + r.chargeable }), { cbm: 0, volWt: 0, actWt: 0, chargeable: 0 });
   const hasNonStackable = results.some(r => !r.stackable);
+
+  // Best-fit logic: smallest FCL container that fits both CBM and weight
+  const bestFit = T.cbm > 0 ? (() => {
+    if (T.cbm < 15) return "LCL";
+    const fit = CBM_CONTAINERS.filter(c => c.cbm && T.cbm <= c.cbm && (!c.maxWt || T.actWt <= c.maxWt));
+    return fit.length ? fit[0].n : null;
+  })() : null;
+
   const addRow = () => setRows([...rows, { l: "", w: "", h: "", qty: "1", wt: "", unit: "cm", stackable: true }]);
   const upd = (i, k, v) => setRows(rows.map((r, idx) => idx === i ? { ...r, [k]: v } : r));
   const rem = i => rows.length > 1 && setRows(rows.filter((_, idx) => idx !== i));
-  const containers = [{ n: "20ft", c: 25 }, { n: "40ft", c: 55 }, { n: "40ft HQ", c: 68 }];
   const si = { background: "#0a0a18", border: "1px solid #ffffff15", borderRadius: 8, color: "#fff", padding: "8px 10px", fontSize: 13, outline: "none", width: "100%", boxSizing: "border-box", fontFamily: "inherit" };
+
   return (
     <div>
-      <div style={{ display: "flex", gap: 8, marginBottom: 18, flexWrap: "wrap" }}>
+      {/* Mode + Unit Toggle Row */}
+      <div style={{ display: "flex", gap: 8, marginBottom: 18, flexWrap: "wrap", alignItems: "center" }}>
         {[["air", "✈️ Air (÷6000)"], ["sea", "🚢 Sea LCL (÷1000)"], ["courier", "📦 Courier (÷5000)"]].map(([m, l]) => (
           <button key={m} onClick={() => setMode(m)} style={{ padding: "8px 14px", borderRadius: 20, background: mode === m ? "#FF6B35" : "#ffffff08", border: `1px solid ${mode === m ? "#FF6B35" : "#ffffff12"}`, color: mode === m ? "#fff" : "#888", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>{l}</button>
         ))}
+        <div style={{ marginLeft: "auto", display: "flex", background: "#ffffff08", borderRadius: 20, padding: 3, border: "1px solid #ffffff15" }}>
+          {[["cbm", "CBM"], ["cft", "CFT"]].map(([u, l]) => (
+            <button key={u} onClick={() => setVolUnit(u)} style={{ padding: "6px 14px", borderRadius: 18, background: volUnit === u ? "#4361EE" : "transparent", border: "none", color: volUnit === u ? "#fff" : "#666", fontSize: 12, fontWeight: 700, cursor: "pointer", transition: "all .2s" }}>{l}</button>
+          ))}
+        </div>
       </div>
+
+      {/* Input Table */}
       <div style={{ overflowX: "auto" }}>
         <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
           <thead><tr>{["Unit", "L", "W", "H", "Qty", "Wt/pc (kg)", "Stackable", ""].map(h => <th key={h} style={{ color: "#555", fontSize: 10, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", padding: "6px 5px", textAlign: "left" }}>{h}</th>)}</tr></thead>
@@ -499,14 +540,22 @@ function CBMTool() {
         </table>
       </div>
       <button onClick={addRow} style={{ marginTop: 10, padding: "7px 14px", background: "#ffffff08", border: "1px solid #ffffff12", borderRadius: 8, color: "#777", fontSize: 12, cursor: "pointer" }}>+ Add Row</button>
+
       {hasNonStackable && (
         <div style={{ marginTop: 10, padding: "10px 14px", background: "#f5540012", border: "1px solid #f5540040", borderRadius: 8, color: "#f98", fontSize: 12 }}>
           ⚠️ Non-stackable items detected — these must be loaded last (top layer only), reducing effective volume utilisation.
         </div>
       )}
+
       {T.cbm > 0 && <>
+        {/* Summary Cards */}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(130px,1fr))", gap: 10, marginTop: 20 }}>
-          {[{ l: "Total CBM", v: `${T.cbm.toFixed(4)} CBM`, s: `= ${(T.cbm * 35.315).toFixed(2)} CFT` }, { l: "Volumetric Wt", v: `${T.volWt.toFixed(2)} kg`, s: `${(T.volWt * 2.205).toFixed(1)} lbs` }, { l: "Actual Wt", v: `${T.actWt.toFixed(2)} kg`, s: `${(T.actWt * 2.205).toFixed(1)} lbs` }, { l: "Chargeable Wt", v: `${T.chargeable.toFixed(2)} kg`, s: T.volWt > T.actWt ? "📐 Vol. wins" : "⚖️ Actual wins", h: true }].map(c => (
+          {[
+            { l: `Total ${volUnit.toUpperCase()}`, v: fmt(T.cbm), s: volUnit === "cbm" ? `= ${(T.cbm * 35.315).toFixed(2)} CFT` : `= ${T.cbm.toFixed(4)} CBM` },
+            { l: "Volumetric Wt", v: `${T.volWt.toFixed(2)} kg`, s: `${(T.volWt * 2.205).toFixed(1)} lbs` },
+            { l: "Actual Wt", v: `${T.actWt.toFixed(2)} kg`, s: `${(T.actWt * 2.205).toFixed(1)} lbs` },
+            { l: "Chargeable Wt", v: `${T.chargeable.toFixed(2)} kg`, s: T.volWt > T.actWt ? "📐 Vol. wins" : "⚖️ Actual wins", h: true }
+          ].map(c => (
             <div key={c.l} style={{ background: c.h ? "#FF6B3512" : "#ffffff06", border: `1px solid ${c.h ? "#FF6B3545" : "#ffffff10"}`, borderRadius: 10, padding: "12px 14px" }}>
               <div style={{ color: "#666", fontSize: 10, fontWeight: 700, letterSpacing: 1.2, textTransform: "uppercase" }}>{c.l}</div>
               <div style={{ color: c.h ? "#FF6B35" : "#fff", fontSize: 17, fontWeight: 800, margin: "4px 0 2px" }}>{c.v}</div>
@@ -514,18 +563,65 @@ function CBMTool() {
             </div>
           ))}
         </div>
-        <div style={{ marginTop: 16 }}>
-          <div style={{ color: "var(--text-muted)", fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 8 }}>Container Fit</div>
-          <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-            {containers.map(c => { const p = Math.min((T.cbm / c.c) * 100, 100); const ov = T.cbm > c.c; return (
-              <div key={c.n} style={{ flex: 1, minWidth: 120, background: "#ffffff06", border: `1px solid ${ov ? "#f5540040" : "#ffffff10"}`, borderRadius: 10, padding: "10px 12px" }}>
-                <div style={{ color: "#fff", fontWeight: 800, fontSize: 12, marginBottom: 6 }}>{c.n}</div>
-                <div style={{ background: "#ffffff08", borderRadius: 4, height: 7, overflow: "hidden", marginBottom: 5 }}>
-                  <div style={{ height: "100%", width: `${p}%`, background: ov ? "#f55" : "#FF6B35", borderRadius: 4, transition: "width .5s" }} />
-                </div>
-                <div style={{ color: ov ? "#f55" : "#666", fontSize: 11 }}>{ov ? `⚠️ +${(T.cbm - c.c).toFixed(2)} CBM over` : `${p.toFixed(1)}% · ${(c.c - T.cbm).toFixed(2)} free`}</div>
+
+        {/* Best-fit Recommendation */}
+        {bestFit && (
+          <div style={{ marginTop: 14, padding: "12px 16px", background: "#06D6A012", border: "1px solid #06D6A040", borderRadius: 10, display: "flex", alignItems: "center", gap: 10 }}>
+            <span style={{ fontSize: 22 }}>🏆</span>
+            <div>
+              <div style={{ color: "#06D6A0", fontWeight: 800, fontSize: 13 }}>Best Fit: {bestFit}</div>
+              <div style={{ color: "#555", fontSize: 11, marginTop: 2 }}>
+                {bestFit === "LCL" ? "Volume under 15 CBM — LCL (Less than Container Load) is most cost-effective." : (() => { const c = CBM_CONTAINERS.find(x => x.n === bestFit); return c ? `${fmtShort(T.cbm)} cargo into ${fmtShort(c.cbm)} capacity — ${((T.cbm / c.cbm) * 100).toFixed(1)}% utilisation` : ""; })()}
               </div>
-            ); })}
+            </div>
+          </div>
+        )}
+
+        {/* Container Grid */}
+        <div style={{ marginTop: 16 }}>
+          <div style={{ color: "var(--text-muted)", fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 10 }}>Container Comparison</div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 10 }}>
+            {CBM_CONTAINERS.map(c => {
+              const isBest = bestFit === c.n;
+              const isLCL = c.tag === "lcl";
+              const isFlatRack = !c.cbm && !isLCL;
+              const pct = c.cbm ? Math.min((T.cbm / c.cbm) * 100, 100) : null;
+              const over = c.cbm ? T.cbm > c.cbm : false;
+              const wtOver = c.maxWt ? T.actWt > c.maxWt : false;
+              const fits = !over && !wtOver;
+              const borderCol = isBest ? "#06D6A0" : over || wtOver ? "#f5540040" : "#ffffff10";
+              return (
+                <div key={c.n} style={{ background: isBest ? "#06D6A008" : "#ffffff05", border: `1px solid ${borderCol}`, borderRadius: 10, padding: "12px 14px", position: "relative" }}>
+                  {isBest && <div style={{ position: "absolute", top: 8, right: 8, background: "#06D6A0", color: "#000", fontSize: 9, fontWeight: 800, padding: "2px 7px", borderRadius: 10, letterSpacing: 0.5 }}>BEST FIT</div>}
+                  <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
+                    <span style={{ fontSize: 16 }}>{c.icon}</span>
+                    <span style={{ color: isBest ? "#06D6A0" : "#fff", fontWeight: 800, fontSize: 12 }}>{c.n}</span>
+                  </div>
+                  <div style={{ color: "#444", fontSize: 10, marginBottom: 8, lineHeight: 1.4 }}>{c.dims}</div>
+                  {isLCL && (
+                    <div style={{ color: T.cbm < 15 ? "#06D6A0" : "#555", fontSize: 11, fontWeight: 700 }}>
+                      {T.cbm < 15 ? "✅ Recommended for this volume" : `📦 ${fmtShort(T.cbm)} — priced per ${volUnit.toUpperCase()}`}
+                    </div>
+                  )}
+                  {isFlatRack && (
+                    <div style={{ color: "#FF6B35", fontSize: 11 }}>🔩 Open platform — OOG / heavy lift cargo<br/><span style={{ color: "#444" }}>Max: {c.maxWt?.toLocaleString()} kg</span></div>
+                  )}
+                  {c.cbm && <>
+                    <div style={{ background: "#ffffff08", borderRadius: 4, height: 6, overflow: "hidden", marginBottom: 5 }}>
+                      <div style={{ height: "100%", width: `${pct}%`, background: over ? "#f55" : isBest ? "#06D6A0" : "#FF6B35", borderRadius: 4, transition: "width .5s" }} />
+                    </div>
+                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10 }}>
+                      <span style={{ color: over ? "#f55" : fits ? "#06D6A0" : "#666" }}>
+                        {over ? `⚠️ +${fmtShort(T.cbm - c.cbm)} over` : `${pct.toFixed(1)}% full`}
+                      </span>
+                      <span style={{ color: "#444" }}>Cap: {fmtShort(c.cbm)}</span>
+                    </div>
+                    {wtOver && <div style={{ color: "#f55", fontSize: 10, marginTop: 3 }}>⚠️ Weight exceeds {c.maxWt?.toLocaleString()} kg limit</div>}
+                    {!over && !wtOver && c.cbm && <div style={{ color: "#444", fontSize: 10, marginTop: 3 }}>{fmtShort(c.cbm - T.cbm)} free space</div>}
+                  </>}
+                </div>
+              );
+            })}
           </div>
         </div>
       </>}
